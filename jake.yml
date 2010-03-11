@@ -1,0 +1,24 @@
+---
+source_directory:     source
+build_directory:      build
+layout:               together
+
+builds:
+  src:
+    packer:           false
+    suffix:           false
+  min:
+    shrink_vars:      false
+    private:          false
+
+packages:
+  scaling-paginator:
+    files:
+      - scaling-paginator
+    meta:
+      requires:
+        - JS.Class
+        - Ojay
+        - Ojay.HTML
+      provides:
+        - ScalingPaginator

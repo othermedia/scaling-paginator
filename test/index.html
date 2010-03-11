@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html><head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <title>ScalingPaginator Tests</title>
+    
+    <script src="http://helium.otherworks.com/js/helium.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        Helium.use('yui', '2.8.0r4');
+        Helium.use('ojay', '0.4.1');
+    </script>
+    <script src="./packages.js" type="text/javascript"></script>
+    
+    <style type="text/css">
+        html, body {margin:0; border:none; padding:0;}
+        #container {position:relative; padding:0 110px;}
+        #items {}
+        .paginator {padding:0 120px;}
+        .item {width:150px; height:150px; border-right:10px solid #fff; float:left; background:#f00;}
+        .paginator-controls .previous, .paginator-controls .next {width:100px; background:#0f0; position:absolute; top:0; height:150px; border-style:solid; border-color:#00f;}
+        .paginator-controls .previous {left:0; border-width:0 10px 0 0;}
+        .paginator-controls .next {right:0; border-width:0 0 0 10px;}
+    </style>
+</head><body>
+    
+    <div id="container">
+        <div id="items"></div>
+    </div>
+    
+    <script type="text/javascript">
+    require('ScalingPaginator', function() {
+        var items = Ojay('#items'), i;
+        for (i = 0; i < 20; i++) {
+            items.insert(Ojay.HTML.div({className: 'item'}));
+        }
+        
+        var paginator = new ScalingPaginator('#items');
+        paginator.setup();
+        paginator.addControls();
+    });
+    </script>
+    
+</body></html>
