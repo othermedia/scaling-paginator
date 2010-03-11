@@ -174,7 +174,7 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                 var html, prev, next;
                 
                 html = Ojay(Ojay.HTML.div({className: 'paginator-controls horizontal'}, function(H) {
-                    prev = Ojay(H.div({className: 'previous disabled'}, 'Previous'));
+                    prev = Ojay(H.div({className: 'previous'}, 'Previous'));
                     next = Ojay(H.div({className: 'next'}, 'Next'));
                 }));
                 
@@ -188,6 +188,8 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                 
                 this.paginator.on('page', this._checkDisabled, this);
                 Ojay(window).on('resize', this._checkDisabled, this);
+                
+                this._checkDisabled();
                 
                 this._previous    = prev;
                 this._next        = next;
