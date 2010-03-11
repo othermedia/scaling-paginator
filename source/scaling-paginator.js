@@ -189,10 +189,11 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                 this.paginator.on('page', this._checkDisabled, this);
                 Ojay(window).on('resize', this._checkDisabled, this);
                 
+                this._previous = prev;
+                this._next     = next;
+                
                 this._checkDisabled();
                 
-                this._previous    = prev;
-                this._next        = next;
                 return this._html = html;
             },
             
