@@ -8,8 +8,8 @@ builds:
     packer:           false
     suffix:           false
   min:
-    shrink_vars:      false
-    private:          false
+    shrink_vars:      true
+    private:          true
 
 packages:
   scaling-paginator:
