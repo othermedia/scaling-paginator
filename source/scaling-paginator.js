@@ -144,7 +144,7 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
             availableWidth = containerWidth - viewportWidth - leftOffset,
             availablePages = (availableWidth / pageWidth).ceil();
         
-        return availablePages;
+        return availablePages < 0 ? 0 : availablePages;
     },
     
     extend: {
