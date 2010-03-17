@@ -12,31 +12,48 @@
     
     <style type="text/css">
         html, body {margin:0; border:none; padding:0;}
-        #container {position:relative; padding:0 110px;}
-        #items {}
-        .paginator {padding:0 120px;}
+        .container {position:relative; margin:100px 0; padding:0 110px;}
+        .paginator {padding:0 120px; background:#f0f0f0;}
         .item {width:150px; height:150px; border-right:10px solid #fff; float:left; background:#f00;}
         .paginator-controls .previous, .paginator-controls .next {width:100px; background:#0f0; position:absolute; top:0; height:150px; border-style:solid; border-color:#00f;}
         .paginator-controls .previous {left:0; border-width:0 10px 0 0;}
         .paginator-controls .next {right:0; border-width:0 0 0 10px;}
+        .paginator-controls .disabled {background:#ccc;}
     </style>
 </head><body>
     
-    <div id="container">
-        <div id="items"></div>
+    <div class="container">
+        <div id="wide"></div>
     </div>
     
     <script type="text/javascript">
-    require('ScalingPaginator', function() {
-        var items = Ojay('#items'), i;
-        for (i = 0; i < 20; i++) {
-            items.insert(Ojay.HTML.div({className: 'item'}));
-        }
-        
-        var paginator = new ScalingPaginator('#items');
-        paginator.setup();
-        paginator.addControls();
-    });
+        require('ScalingPaginator', function() {
+            var items = Ojay('#wide'), i;
+            for (i = 0; i < 20; i++) {
+                items.insert(Ojay.HTML.div({className: 'item'}));
+            }
+            
+            var paginator = new ScalingPaginator('#wide');
+            paginator.setup();
+            paginator.addControls();
+        });
+    </script>
+    
+    <div class="container">
+        <div id="narrow"></div>
+    </div>
+    
+    <script type="text/javascript">
+        require('ScalingPaginator', function() {
+            var items = Ojay('#narrow'), i;
+            for (i = 0; i < 4; i++) {
+                items.insert(Ojay.HTML.div({className: 'item'}));
+            }
+            
+            var paginator = new ScalingPaginator('#narrow');
+            paginator.setup();
+            paginator.addControls();
+        });
     </script>
     
 </body></html>
