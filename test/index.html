@@ -3,9 +3,9 @@
     <meta http-equiv="Content-type" content="text/html; charset=utf-8">
     <title>ScalingPaginator Tests</title>
     
-    <script src="http://helium.otherworks.com/js/helium.js" type="text/javascript"></script>
+    <script src="http://js.othermedia.com/helium.js" type="text/javascript"></script>
     <script type="text/javascript">
-        Helium.use('yui', '2.8.0r4');
+        Helium.use('yui', '2.7.0');
         Helium.use('ojay', '0.4.1');
     </script>
     <script src="./packages.js" type="text/javascript"></script>
@@ -30,12 +30,22 @@
         require('ScalingPaginator', function() {
             var items = Ojay('#wide'), i;
             for (i = 0; i < 20; i++) {
-                items.insert(Ojay.HTML.div({className: 'item'}));
+                items.insert(Ojay.HTML.div({className: 'item'}, i.toString()));
             }
             
             var paginator = new ScalingPaginator('#wide');
             paginator.setup();
             paginator.addControls();
+            
+            if (!(console && console.log)) return;
+            
+            paginator.on('directionChange', function(p, alignment) {
+                console.log(alignment);
+            });
+            
+            paginator.on('positionChange', function(p, position) {
+                console.log(position.index);
+            });
         });
     </script>
     

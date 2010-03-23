@@ -3,7 +3,6 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
     
     initialize: function(subject, options) {
         this._selector = subject;
-        this._elements = {};
         
         options = this._options = options || {};
         options.perPage    = options.perPage    || this.klass.PER_PAGE;
@@ -16,45 +15,180 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
         this.setState('CREATED');
     },
     
-    getHTML: function() {
-        return this._wrapper;
+    /**
+     * If the paginator is aligned to the left, we can determine whether there
+     * are pages to the left quite cheaply by checking the index; otherwise,
+     * we need to do some more expensive calculations.
+     */
+    hasLeft: function() {
+        if (this.position.align === 'left') {
+            return this.position.index > 0;
+        } else {
+            return this.getLeftPages().length > 1;
+        }
     },
     
-    getRegion: function() {
-        return this._items.reduce(function(region, item) {
-            item = Ojay(item);
+    /**
+     * Similarly to `hasLeft`, if the paginator is aligned to the right it's
+     * easy to determine whether there are pages to the right; otherwise, we
+     * need to use the `getRightPages` method to split the available elements
+     * into pages.
+     */
+    hasRight: function() {
+        if (this.position.align === 'right') {
+            return this.position.index < this._elements.length - 1;
+        } else {
+            return this.getRightPages().length > 1;
+        }
+    },
+    
+    getLeftPages: function() {
+        var left  = this._elements.slice(0, this.position.index + 1).reverse(),
+            pages = this.makePages(left).reverse();
+        
+        return pages.map(function(p) { return p.reverse(); });
+    },
+    
+    getRightPages: function() {
+        var right = this._elements.slice(this.position.index + 1),
+            pages = this.makePages(right);
+        
+        return pages;
+    },
+    
+    /**
+     * Splits the elements of the paginator up into 'pages' based on the width
+     * of the container and the width of the available elements.
+     */
+    makePages: function(elements) {
+        var containerWidth = this._wrapper.getWidth(),
+            pageWidth      = 0;
+        
+        return (elements || []).reduce(function(pages, element) {
+            pageWidth += element.getWidth();
             
-            var x = item.getWidth(), y = item.getHeight();
-            
-            region.width += x;
-            
-            if (x > region.pageWidth) {
-                region.pageWidth = x;
+            if (pageWidth > containerWidth) {
+                pageWidth = 0;
+                pages.push([element]);
+            } else {
+                pages[pages.length - 1].push(element);
             }
             
-            if (y > region.pageHeight) {
-                region.pageHeight = y;
-            }
-            
-            return region;
-        }, {width: 0, pageHeight: 0, pageWidth: 0});
+            return pages;
+        }.bind(this), [[]]);
     },
     
-    getWidth: function() {
-        return this.getRegion().width;
-    },
-    
-    getHeight: function() {
-        return this.getRegion().height;
+    /**
+     * Calculates the distance right or left which the container should be
+     * offset by in order to position it according to the index and alignment
+     * provided.
+     */
+    getOffset: function(position) {
+        var index = position.index,
+            ends  = position.align === 'left' ? [0, index] : [index + 1];
+        return [].slice.apply(this._elements, ends).reduce(function(o, e) {
+            return o - e.getWidth();
+        }, 0);
     },
     
     states: {
+        READY: {
+            previous: function() {
+                var pages = this.getLeftPages(),
+                    align, last, index;
+                
+                if (pages.length < 1) return;
+                
+                align = pages.length === 1 ? 'left' : this.position.align;
+                last  = pages[pages.length - 1];
+                index = this.position.index - last.length;
+                
+                this.setPosition({
+                    align: align,
+                    index: index
+                });
+            },
+            
+            next: function() {
+                var pages = this.getRightPages(),
+                    align, first, index;
+                
+                if (pages.length < 1) return;
+                
+                align = pages.length === 1 ? 'right' : this.position.align;
+                first = pages[0];
+                index = this.position.index + first.length;
+                
+                this.setPosition({
+                    align: align,
+                    index: index
+                });
+            },
+            
+            setPosition: function(position) {
+                var thisAlign = this.position.align,
+                    thisIndex = this.position.index,
+                    align     = position.align,
+                    index     = position.index,
+                    animation = {};
+                
+                if (align === thisAlign && index === thisIndex)  return;
+                if (index < 0 || index >= this._elements.length) return;
+                
+                // If changing the direction of alignment, we need to unset any
+                // existing 'left' or 'right' property (as appropriate) on the
+                // elements' container so as to avoid positioning clashes and
+                // give a base offset to animate from.
+                if (align !== thisAlign) {
+                    var style = {};
+                    style[thisAlign] = '';
+                    style[align] = this.getOffset(this.position) + 'px';
+                    this._container.setStyle(style);
+                }
+                
+                animation[align] = {to: this.getOffset(position)};
+                
+                this.setState('SCROLLING');
+                
+                return this._container.animate(animation, this._options.scrollTime)
+                ._(function() {
+                    this.position = position;
+                    this.setState('READY');
+                    
+                    if (typeof callback === 'function') {
+                        callback.call(scope || null, this, this.position);
+                    }
+                    
+                    this.notifyObservers('positionChange', this.position);
+                    
+                    if (thisAlign !== align) {
+                        this.notifyObservers('directionChange', align);
+                    }
+                }.bind(this));
+            },
+            
+            addControls: function(klass) {
+                var controls = new (klass || this.klass.Controls)(this);
+                this._wrapper.insert(controls.getHTML(), 'after');
+                return controls;
+            }
+        },
+        
+        /**
+         * State-changing operations shouldn't be possible while the paginator
+         * is scrolling.
+         */
+        SCROLLING: {},
+        
         CREATED: {
             setup: function() {
                 this._container = Ojay(this._selector);
-                this._items     = this._container.children().toArray();
-                this._pages     = (this._items.length / this._options.perPage).ceil();
-                this._page      = 0;
+                this._elements  = this._container.children().map(Ojay);
+                
+                this.position = {
+                    align: 'left',
+                    index: 0
+                };
                 
                 var r = this.getRegion(),
                     x = r.width,
@@ -90,61 +224,39 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
             getHTML: function() {
                 return this.setup();
             }
-        },
-        
-        READY: {
-            setPage: function(page, callback, scope) {
-                if (page < 0 || (page > this._page && this.right() < 1)) return;
-                
-                this.setState('SCROLLING');
-                this._container.animate({
-                    left: {
-                        to: -(this._pageWidth * page)
-                    }
-                }, this._options.scrollTime)
-                ._(function() {
-                    this._page = page;
-                    this.setState('READY');
-                    
-                    if (typeof callback === 'function') {
-                        callback.call(scope || null, this, this._page);
-                    }
-                    
-                    this.notifyObservers('page', this._page);
-                }.bind(this));
-            },
+        }
+    },
+    
+    getHTML: function() {
+        return this._wrapper;
+    },
+    
+    getRegion: function() {
+        return this._elements.reduce(function(region, item) {
+            item = Ojay(item);
             
-            previous: function() {
-                this.setPage(this._page - 1);
-            },
+            var x = item.getWidth(), y = item.getHeight();
             
-            next: function() {
-                this.setPage(this._page + 1);
-            },
+            region.width += x;
             
-            addControls: function(klass) {
-                var controls = new (klass || this.klass.Controls)(this);
-                this._wrapper.insert(controls.getHTML(), 'after');
-                return controls;
+            if (x > region.pageWidth) {
+                region.pageWidth = x;
             }
-        },
-        
-        SCROLLING: {}
+            
+            if (y > region.pageHeight) {
+                region.pageHeight = y;
+            }
+            
+            return region;
+        }, {width: 0, pageHeight: 0, pageWidth: 0});
     },
     
-    left: function() {
-        return this._page;
+    getWidth: function() {
+        return this.getRegion().width;
     },
     
-    right: function() {
-        var pageWidth      = this._pageWidth,
-            containerWidth = this.getWidth(),
-            viewportWidth  = this._wrapper.getWidth(),
-            leftOffset     = this._page * pageWidth,
-            availableWidth = containerWidth - viewportWidth - leftOffset,
-            availablePages = (availableWidth / pageWidth).ceil();
-        
-        return availablePages < 0 ? 0 : availablePages;
+    getHeight: function() {
+        return this.getRegion().height;
     },
     
     extend: {
@@ -186,7 +298,7 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                 prev.on('click', this.previous, this);
                 next.on('click', this.next, this);
                 
-                this.paginator.on('page', this._checkDisabled, this);
+                this.paginator.on('positionChange', this._checkDisabled, this);
                 Ojay(window).on('resize', this._checkDisabled, this);
                 
                 this._previous = prev;
@@ -198,8 +310,8 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
             },
             
             _checkDisabled: function() {
-                this._previous[this.paginator.left() === 0 ? 'addClass' : 'removeClass']('disabled');
-                this._next[this.paginator.right() === 0 ? 'addClass' : 'removeClass']('disabled');
+                this._previous[this.paginator.hasLeft() ? 'removeClass' : 'addClass']('disabled');
+                this._next[this.paginator.hasRight() ? 'removeClass' : 'addClass']('disabled');
             }
         })
     }
