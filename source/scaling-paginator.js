@@ -65,7 +65,7 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
      * of the container and the width of the available elements.
      */
     makePages: function(elements) {
-        var containerWidth = this._wrapper.getWidth(),
+        var containerWidth = this.getViewportWidth(),
             pageWidth      = 0;
         
         return (elements || []).reduce(function(pages, element) {
@@ -146,7 +146,8 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                     thisIndex = this.position.index,
                     align     = position.align,
                     index     = position.index,
-                    animation = {};
+                    animation = {},
+                    style, offset;
                 
                 if (align === thisAlign && index === thisIndex)  return;
                 if (index < 0 || index >= this._elements.length) return;
@@ -156,9 +157,12 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                 // elements' container so as to avoid positioning clashes and
                 // give a base offset to animate from.
                 if (align !== thisAlign) {
-                    var style = {};
+                    style  = {};
+                    offset = this.getWidth() -
+                             this.getViewportWidth() +
+                             this.getOffset(this.position);
                     style[thisAlign] = '';
-                    style[align] = this.getOffset(this.position) + 'px';
+                    style[align] = -offset + 'px';
                     this._container.setStyle(style);
                 }
                 
@@ -273,6 +277,10 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
     
     getHeight: function() {
         return this.getRegion().height;
+    },
+    
+    getViewportWidth: function() {
+        return this._wrapper.getWidth();
     },
     
     extend: {
