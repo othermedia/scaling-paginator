@@ -65,17 +65,19 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
             pageWidth      = 0;
         
         return (elements || []).reduce(function(pages, element) {
-            pageWidth += element.getWidth();
+            var elementWidth = element.getWidth();
+
+            pageWidth += elementWidth;
             
             if (pageWidth > containerWidth) {
-                pageWidth = 0;
+                pageWidth = elementWidth;
                 pages.push([element]);
             } else {
                 pages[pages.length - 1].push(element);
             }
             
             return pages;
-        }.bind(this), [[]]);
+        }, [[]]);
     },
     
     /**
