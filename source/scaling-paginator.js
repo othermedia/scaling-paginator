@@ -43,10 +43,16 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
     },
     
     getLeftPages: function() {
-        var left  = this._elements.slice(0, this.position.index).reverse(),
-            pages = this.makePages(left).reverse();
+        var leftAligned = this.position.align === 'left',
+            index       = this.position.index,
+            left, pages;
         
-        if (this.position.align !== 'left') pages.pop();
+        if (!leftAligned) index += 1;
+        
+        left  = this._elements.slice(0, index).reverse();
+        pages = this.makePages(left).reverse();
+        
+        if (!leftAligned) pages.pop();
         
         return pages.map(function(p) { return p.reverse(); });
     },
