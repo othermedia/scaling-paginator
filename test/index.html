@@ -29,6 +29,7 @@
     <script type="text/javascript">
         require('ScalingPaginator', function() {
             var items = Ojay('#wide'), i;
+            
             for (i = 0; i < 20; i++) {
                 items.insert(Ojay.HTML.div({className: 'item'}, i.toString()));
             }
@@ -36,16 +37,6 @@
             var paginator = new ScalingPaginator('#wide');
             paginator.setup();
             paginator.addControls();
-            
-            if (!(console && console.log)) return;
-            
-            paginator.on('directionChange', function(p, alignment) {
-                console.log(alignment);
-            });
-            
-            paginator.on('positionChange', function(p, position) {
-                console.log(position.index);
-            });
         });
     </script>
     
@@ -56,13 +47,14 @@
     <script type="text/javascript">
         require('ScalingPaginator', function() {
             var items = Ojay('#narrow'), i;
+            
             for (i = 0; i < 4; i++) {
                 items.insert(Ojay.HTML.div({className: 'item'}));
             }
             
-            var paginator = new ScalingPaginator('#narrow');
-            paginator.setup();
-            paginator.addControls();
+            var pager2 = new ScalingPaginator('#narrow');
+            pager2.setup();
+            pager2.addControls();
         });
     </script>
     

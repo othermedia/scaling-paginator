@@ -24,7 +24,7 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
         if (this.position.align === 'left') {
             return this.position.index > 0;
         } else {
-            return this.getLeftPages().length > 1;
+            return this.getLeftPages().length > 0;
         }
     },
     
@@ -38,20 +38,24 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
         if (this.position.align === 'right') {
             return this.position.index < this._elements.length - 1;
         } else {
-            return this.getRightPages().length > 1;
+            return this.getRightPages().length > 0;
         }
     },
     
     getLeftPages: function() {
-        var left  = this._elements.slice(0, this.position.index + 1).reverse(),
+        var left  = this._elements.slice(0, this.position.index).reverse(),
             pages = this.makePages(left).reverse();
+        
+        if (this.position.align !== 'left') pages.pop();
         
         return pages.map(function(p) { return p.reverse(); });
     },
     
     getRightPages: function() {
-        var right = this._elements.slice(this.position.index + 1),
+        var right = this._elements.slice(this.position.index),
             pages = this.makePages(right);
+        
+        if (this.position.align !== 'right') pages.shift();
         
         return pages;
     },
@@ -66,7 +70,7 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
         
         return (elements || []).reduce(function(pages, element) {
             var elementWidth = element.getWidth();
-
+            
             pageWidth += elementWidth;
             
             if (pageWidth > containerWidth) {
@@ -101,9 +105,14 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                 
                 if (pages.length < 1) return;
                 
-                align = pages.length === 1 ? 'left' : this.position.align;
-                last  = pages[pages.length - 1];
-                index = this.position.index - last.length;
+                if (pages.length === 1) {
+                    align = 'left';
+                    index = 0;
+                } else {
+                    last  = pages[pages.length - 1];
+                    align = this.position.align;
+                    index = this.position.index - last.length;
+                }
                 
                 this.setPosition({
                     align: align,
@@ -117,9 +126,14 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                 
                 if (pages.length < 1) return;
                 
-                align = pages.length === 1 ? 'right' : this.position.align;
-                first = pages[0];
-                index = this.position.index + first.length;
+                if (pages.length === 1) {
+                    align = 'right';
+                    index = this._elements.length - 1;
+                } else {
+                    first = pages[0];
+                    align = this.position.align;
+                    index = this.position.index + first.length;
+                }
                 
                 this.setPosition({
                     align: align,
