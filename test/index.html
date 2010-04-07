@@ -34,9 +34,9 @@
                 items.insert(Ojay.HTML.div({className: 'item'}, i.toString()));
             }
             
-            var paginator = new ScalingPaginator('#wide');
-            paginator.setup();
-            paginator.addControls();
+            pager = new ScalingPaginator('#wide');
+            pager.setup();
+            pager.addControls();
         });
     </script>
     
@@ -52,9 +52,27 @@
                 items.insert(Ojay.HTML.div({className: 'item'}));
             }
             
-            var pager2 = new ScalingPaginator('#narrow');
+            pager2 = new ScalingPaginator('#narrow');
             pager2.setup();
             pager2.addControls();
+        });
+    </script>
+    
+    <div class="container">
+        <div id="medium"></div>
+    </div>
+    
+    <script type="text/javascript">
+        require('ScalingPaginator', function() {
+            var items = Ojay('#medium'), i;
+            
+            for (i = 0; i < 9; i++) {
+                items.insert(Ojay.HTML.div({className: 'item'}));
+            }
+            
+            pager3 = new ScalingPaginator('#medium');
+            pager3.setup();
+            pager3.addControls();
         });
     </script>
     
