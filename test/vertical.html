@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html><head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <title>ScalingPaginator Tests</title>
+    
+    <script src="http://js.othermedia.com/helium.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        Helium.use('yui', '2.7.0');
+        Helium.use('ojay', '0.4.1');
+    </script>
+    <script src="./packages.js" type="text/javascript"></script>
+    
+    <style type="text/css">
+        html, body {margin:0; border:none; padding:0;}
+        .container {position:relative; margin:100px 0; padding:0 110px;}
+        .paginator {padding:0 120px; background:#f0f0f0;}
+        .item {width:150px; height:150px; border-right:10px solid #fff; float:left; background:#f00;}
+        .paginator-controls .previous, .paginator-controls .next {width:100px; background:#0f0; position:absolute; top:0; height:150px; border-style:solid; border-color:#00f;}
+        .paginator-controls .previous {left:0; border-width:0 10px 0 0;}
+        .paginator-controls .next {right:0; border-width:0 0 0 10px;}
+        .paginator-controls .disabled {background:#ccc;}
+    </style>
+</head><body>
+    
+    <h2>Tall: 20 items</h2>
+    <div class="container">
+        <div id="tall"></div>
+    </div>
+    
+    <script type="text/javascript">
+        require('ScalingPaginator', function() {
+            var container = Ojay('#tall'), i;
+            
+            for (i = 0; i < 20; i++) {
+                container.insert(Ojay.HTML.div({className: 'item'}, i.toString()));
+            }
+            
+            pager = new ScalingPaginator(container, {
+                direction: 'vertical'
+            });
+            pager.setup();
+            pager.addControls();
+        });
+    </script>
+    
+    <h2>Short: 4 items</h2>
+    <div class="container">
+        <div id="short"></div>
+    </div>
+    
+    <script type="text/javascript">
+        require('ScalingPaginator', function() {
+            var container = Ojay('#short'), i;
+            
+            for (i = 0; i < 4; i++) {
+                container.insert(Ojay.HTML.div({className: 'item'}));
+            }
+            
+            pager2 = new ScalingPaginator(container, {
+                direction: 'vertical'
+            });
+            pager2.setup();
+            pager2.addControls();
+        });
+    </script>
+    
+    <h2>Medium: 9 items</h2>
+    <div class="container">
+        <div id="medium"></div>
+    </div>
+    
+    <script type="text/javascript">
+        require('ScalingPaginator', function() {
+            var container = Ojay('#medium'), i;
+            
+            for (i = 0; i < 9; i++) {
+                container.insert(Ojay.HTML.div({className: 'item'}));
+            }
+            
+            pager3 = new ScalingPaginator(container, {
+                direction: 'vertical'
+            });
+            pager3.setup();
+            pager3.addControls();
+        });
+    </script>
+    
+</body></html>
