@@ -4,12 +4,11 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
     initialize: function(subject, options) {
         this._selector = subject;
         
-        options = this._options = options || {};
-        options.perPage    = options.perPage    || this.klass.PER_PAGE;
+        this._options = options = options || {};
         options.scrollTime = options.scrollTime || this.klass.SCROLL_TIME;
         options.pushFade   = options.pushFade   || this.klass.PUSH_FADE_TIME;
         options.pushSlide  = options.pushSlide  || this.klass.PUSH_SLIDE_TIME;
-        options.direction  = options.direction  || this.klass.DIRECTION;
+        options.direction  = (options.direction || this.klass.DIRECTION).toLowerCase();
         options.easing     = options.easing     || this.klass.EASING;
         
         this.setState('CREATED');
@@ -176,8 +175,7 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                 
                 this.setState('SCROLLING');
                 
-                return this._container.animate(animation, this._options.scrollTime)
-                ._(function() {
+                return this._container.animate(animation, this._options.scrollTime)._(function() {
                     this.position = position;
                     this.setState('READY');
                     
@@ -219,8 +217,6 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                 var r = this.getRegion(),
                     x = r.width,
                     y = r.pageHeight;
-                
-                this._pageWidth = r.pageWidth * this._options.perPage;
                 
                 this._wrapper = Ojay(Ojay.HTML.div({className: 'paginator horizontal'}));
                 
@@ -276,6 +272,7 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
             return region;
         }, {width: 0, pageHeight: 0, pageWidth: 0});
     },
+
     
     getWidth: function() {
         return this.getRegion().width;
@@ -290,7 +287,6 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
     },
     
     extend: {
-        PER_PAGE:        5,
         SCROLL_TIME:     0.5,
         PUSH_FADE_TIME:  0.3,
         PUSH_SLIDE_TIME: 0.3,
@@ -313,11 +309,11 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
             getHTML: function() {
                 if (this._html) return this._html;
                 
-                var html, prev, next;
+                var self = this, html, prev, next;
                 
                 html = Ojay(Ojay.HTML.div({className: 'paginator-controls horizontal'}, function(H) {
-                    prev = Ojay(H.div({className: 'previous'}, 'Previous'));
-                    next = Ojay(H.div({className: 'next'}, 'Next'));
+                    self._previous = prev = Ojay(H.div({className: 'previous'}, 'Previous'));
+                    self._next     = next = Ojay(H.div({className: 'next'}, 'Next'));
                 }));
                 
                 [prev, next].forEach(function(ctrl) {
@@ -330,9 +326,6 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                 
                 this.paginator.on('positionChange', this._checkDisabled, this);
                 Ojay(window).on('resize', this._checkDisabled, this);
-                
-                this._previous = prev;
-                this._next     = next;
                 
                 this._checkDisabled();
                 
