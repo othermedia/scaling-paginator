@@ -29,13 +29,15 @@
     
     <script type="text/javascript">
         require('ScalingPaginator', function() {
-            var items = Ojay('#wide'), i;
+            var container = Ojay('#wide'), i;
             
             for (i = 0; i < 20; i++) {
-                items.insert(Ojay.HTML.div({className: 'item'}, i.toString()));
+                container.insert(Ojay.HTML.div({className: 'item'}, i.toString()));
             }
             
-            pager = new ScalingPaginator('#wide');
+            pager = new ScalingPaginator(container, {
+                direction: 'horizontal'
+            });
             pager.setup();
             pager.addControls();
         });
@@ -48,13 +50,15 @@
     
     <script type="text/javascript">
         require('ScalingPaginator', function() {
-            var items = Ojay('#narrow'), i;
+            var container = Ojay('#narrow'), i;
             
             for (i = 0; i < 4; i++) {
-                items.insert(Ojay.HTML.div({className: 'item'}, i.toString()));
+                container.insert(Ojay.HTML.div({className: 'item'}, i.toString()));
             }
             
-            pager2 = new ScalingPaginator('#narrow');
+            pager2 = new ScalingPaginator(container, {
+                direction: 'horizontal'
+            });
             pager2.setup();
             pager2.addControls();
         });
@@ -67,13 +71,15 @@
     
     <script type="text/javascript">
         require('ScalingPaginator', function() {
-            var items = Ojay('#medium'), i;
+            var container = Ojay('#medium'), i;
             
             for (i = 0; i < 9; i++) {
-                items.insert(Ojay.HTML.div({className: 'item'}, i.toString()));
+                container.insert(Ojay.HTML.div({className: 'item'}, i.toString()));
             }
             
-            pager3 = new ScalingPaginator('#medium');
+            pager3 = new ScalingPaginator(container, {
+                direction: 'horizontal'
+            });
             pager3.setup();
             pager3.addControls();
         });
