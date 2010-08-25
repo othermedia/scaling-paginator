@@ -18,7 +18,9 @@ packages:
     meta:
       requires:
         - JS.Class
+        - JS.State
         - Ojay
+        - Ojay.Observable
         - Ojay.HTML
       provides:
         - ScalingPaginator
