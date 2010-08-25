@@ -240,23 +240,34 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
             },
             
             pop: function() {
-                var popped     = this._elements[0],
-                    onLastPage = this.onLastPage(),
+                var popped        = this._elements[this._elements.length - 1],
+                    onLastPage    = this.onLastPage(),
                     self = this, reset;
                 
                 if (!popped) return;
                 
                 reset = function(last) {
-                    if (last) self.position.index = this._elements.length - 1;
-                    self._elements.pop().remove();
-                    var style = {width: self.getWidth() + 'px'};
+                    var chain = new JS.MethodChain(),
+                        style = {width: self.getWidth() + 'px'};
                     style[self.position.align] = self.getOffset(self.position) + 'px';
-                    self._container.setStyle(style);
-                    self.notifyObservers('positionChange', self.position);
+                    if (last) self.position.index = self._elements.length - 1;
+                    self._elements.pop();
+                    if (self.hasSinglePage() && !onLastPage) {
+                        popped.animate({opacity: {from: 1, to: 0}}, self._options.pushFade).remove()
+                        ._(function() {
+                            self._container.setStyle(style);
+                            self.notifyObservers('positionChange', self.position);
+                        });
+                    } else {
+                        popped.remove();
+                        self._container.setStyle(style);
+                        self.notifyObservers('positionChange', self.position);
+                    }
                 };
                 
                 if (onLastPage && this._elements.length > 1) {
-                    this.setPosition({align: 'right', index: this._elements.length - 2},
+                    popped.animate({opacity: {from: 1, to: 0}}, this._options.pushFade)
+                    ._(this).setPosition({align: 'right', index: this._elements.length - 2},
                         {silent: true, animTime: this._options.pushSlide})
                     ._(reset.partial(true));
                 } else {
