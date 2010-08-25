@@ -50,14 +50,18 @@
             
             container.parents().insert(ctrlWrap, 'after');
             
-            pager = new ScalingPaginator(container);
+            pager = new ScalingPaginator(container, {
+                direction: 'horizontal',
+                scrollTime: 1.0
+            });
             pager.setup();
             pager.addControls();
             
             ['unshift', 'shift', 'push', 'pop'].forEach(function(type) {
                 ctrls[type].on('click', function() {
-                    pager[type](type == 'unshift' || type == 'push' ?
-                        Ojay.HTML.div({className: 'item'}, 'Test') : undefined);
+                    var arg = type == 'unshift' || type == 'push' ?
+                        Ojay.HTML.div({className: 'item'}, 'Test') : undefined;
+                    pager[type](arg);
                 });
             });
         });

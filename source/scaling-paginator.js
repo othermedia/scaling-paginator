@@ -27,6 +27,10 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
         }
     },
     
+    onFirstPage: function() {
+        return this.position.align == 'left' && !this.hasLeft();
+    },
+    
     /**
      * Similarly to `hasLeft`, if the paginator is aligned to the right it's
      * easy to determine whether there are pages to the right; otherwise, we
@@ -39,6 +43,10 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
         } else {
             return this.getRightPages().length > 0;
         }
+    },
+    
+    onLastPage: function() {
+        return this.position.align == 'right' && !this.hasRight();
     },
     
     getLeftPages: function() {
@@ -97,7 +105,7 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
     getOffset: function(position) {
         var index = position.index,
             ends  = position.align === 'left' ? [0, index] : [index + 1];
-        return [].slice.apply(this._elements, ends).reduce(function(o, e) {
+        return Array.prototype.slice.apply(this._elements, ends).reduce(function(o, e) {
             return o - e.getWidth();
         }, 0);
     },
@@ -154,8 +162,8 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                     animation = {},
                     style, offset;
                 
-                if (align === thisAlign && index === thisIndex)  return;
-                if (index < 0 || index >= this._elements.length) return;
+                if ((align === thisAlign && index === thisIndex) ||
+                    (index < 0 || index >= this._elements.length)) return this;
                 
                 // If changing the direction of alignment, we need to unset any
                 // existing 'left' or 'right' property (as appropriate) on the
@@ -188,13 +196,47 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                     if (thisAlign !== align) {
                         this.notifyObservers('directionChange', align);
                     }
-                }.bind(this));
+                }.bind(this))._(this);
             },
             
             addControls: function(klass) {
                 var controls = new (klass || this.klass.Controls)(this);
                 this._wrapper.insert(controls.getHTML(), 'after');
                 return controls;
+            },
+            
+            push: function(item) {
+                var onLastPage = this.onLastPage(),
+                    style;
+                
+                item = Ojay(item);
+                this._elements.push(item);
+                this._container.insert(item, 'bottom');
+                
+                style = {width: this.getWidth() + 'px'};
+                style[this.position.align] = this.getOffset(this.position) + 'px';
+                this._container.setStyle(style);
+                
+                if (onLastPage) this.setPosition({align: 'right', index: this._elements.length - 1});
+                
+                return this;
+            },
+            
+            unshift: function(item) {
+                var onFirstPage = this.onFirstPage(), style;
+                
+                item = Ojay(item);
+                this._elements.unshift(item);
+                this._container.insert(item, 'top');
+                this.position.index += 1;
+                
+                style = {width: this.getWidth() + 'px'};
+                style[this.position.align] = this.getOffset(this.position) + 'px';
+                this._container.setStyle(style);
+                
+                if (onFirstPage) this.setPosition({align: 'left', index: 0});
+                
+                return this;
             }
         },
         
