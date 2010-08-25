@@ -154,7 +154,7 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                 });
             },
             
-            setPosition: function(position) {
+            setPosition: function(position, options) {
                 var thisAlign = this.position.align,
                     thisIndex = this.position.index,
                     align     = position.align,
@@ -162,6 +162,8 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                     animation = {},
                     style, offset;
                 
+                options = options || {};
+
                 if ((align === thisAlign && index === thisIndex) ||
                     (index < 0 || index >= this._elements.length)) return this;
                 
@@ -191,10 +193,9 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                         callback.call(scope || null, this, this.position);
                     }
                     
-                    this.notifyObservers('positionChange', this.position);
-                    
-                    if (thisAlign !== align) {
-                        this.notifyObservers('directionChange', align);
+                    if (options.silent !== true) {
+                        this.notifyObservers('positionChange', this.position);
+                        if (thisAlign !== align) this.notifyObservers('directionChange', align);
                     }
                 }.bind(this))._(this);
             },
@@ -237,6 +238,31 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                 if (onFirstPage) this.setPosition({align: 'left', index: 0});
                 
                 return this;
+            },
+
+            shift: function() {
+                var shifted     = this._elements[0],
+                    onFirstPage = this.onFirstPage(),
+                    self = this, reset;
+
+                if (!shifted) return;
+
+                reset = function(index) {
+                    if (typeof index == 'number') self.position.index = index;
+                    self._elements.shift().remove();
+                    var style = {width: self.getWidth() + 'px'};
+                    style[self.position.align] = self.getOffset(self.position) + 'px';
+                    self._container.setStyle(style);
+                    self.notifyObservers('positionChange', self.position);
+                };
+
+                if (onFirstPage && this._elements.length > 1) {
+                    this.setPosition({align: 'left', index: 1}, {silent: true})._(reset.partial(0));
+                } else {
+                    reset();
+                }
+
+                return shifted;
             }
         },
         
