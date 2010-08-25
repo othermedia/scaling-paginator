@@ -1,0 +1,7 @@
+2010.08.25, Version 1.1.0
+
+* Added push, pop, unshift and shift methods.
+
+2010.04.07, Version 1.0.0
+
+* A paginator that scales with the browser viewport.
