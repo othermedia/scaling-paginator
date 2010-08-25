@@ -1,6 +1,7 @@
 2010.08.25, Version 1.1.0
 
-* Added push, pop, unshift and shift methods.
+* Added push, pop, unshift and shift methods to add and remove elements from
+  the paginator.
 
 2010.04.07, Version 1.0.0
 
