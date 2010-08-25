@@ -227,6 +227,32 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                 return this;
             },
             
+            pop: function() {
+                var popped     = this._elements[0],
+                    onLastPage = this.onLastPage(),
+                    self = this, reset;
+                
+                if (!popped) return;
+                
+                reset = function(last) {
+                    if (last) self.position.index = this._elements.length - 1;
+                    self._elements.pop().remove();
+                    var style = {width: self.getWidth() + 'px'};
+                    style[self.position.align] = self.getOffset(self.position) + 'px';
+                    self._container.setStyle(style);
+                    self.notifyObservers('positionChange', self.position);
+                };
+                
+                if (onLastPage && this._elements.length > 1) {
+                    this.setPosition({align: 'right', index: this._elements.length - 2}, {silent: true})
+                    ._(reset.partial(true));
+                } else {
+                    reset();
+                }
+                
+                return popped;
+            },
+            
             unshift: function(item) {
                 var onFirstPage = this.onFirstPage(), style;
                 
@@ -255,8 +281,8 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                 
                 if (!shifted) return;
                 
-                reset = function(index) {
-                    if (typeof index == 'number') self.position.index = index;
+                reset = function(last) {
+                    if (last) self.position.index = 0;
                     self._elements.shift().remove();
                     var style = {width: self.getWidth() + 'px'};
                     style[self.position.align] = self.getOffset(self.position) + 'px';
@@ -265,7 +291,8 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                 };
                 
                 if (onFirstPage && this._elements.length > 1) {
-                    this.setPosition({align: 'left', index: 1}, {silent: true})._(reset.partial(0));
+                    this.setPosition({align: 'left', index: 1}, {silent: true})
+                    ._(reset.partial(true));
                 } else {
                     reset();
                 }
