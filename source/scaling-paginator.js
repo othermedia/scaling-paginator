@@ -240,18 +240,17 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
             },
             
             pop: function() {
-                var popped        = this._elements[this._elements.length - 1],
-                    onLastPage    = this.onLastPage(),
+                var popped     = this._elements[this._elements.length - 1],
+                    onLastPage = this.onLastPage(),
                     self = this, reset;
                 
                 if (!popped) return;
                 
                 reset = function(last) {
-                    var chain = new JS.MethodChain(),
-                        style = {width: self.getWidth() + 'px'};
-                    style[self.position.align] = self.getOffset(self.position) + 'px';
                     if (last) self.position.index = self._elements.length - 1;
                     self._elements.pop();
+                    var style = {width: self.getWidth() + 'px'};
+                    style[self.position.align] = self.getOffset(self.position) + 'px';
                     if (self.hasSinglePage() && !onLastPage) {
                         popped.animate({opacity: {from: 1, to: 0}}, self._options.pushFade).remove()
                         ._(function() {
@@ -314,15 +313,25 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                 
                 reset = function(last) {
                     if (last) self.position.index = 0;
-                    self._elements.shift().remove();
+                    self._elements.shift();
                     var style = {width: self.getWidth() + 'px'};
                     style[self.position.align] = self.getOffset(self.position) + 'px';
-                    self._container.setStyle(style);
-                    self.notifyObservers('positionChange', self.position);
+                    if (self.hasSinglePage() && !onFirstPage) {
+                        shifted.animate({opacity: {from: 1, to: 0}}, self._options.pushFade).remove()
+                        ._(function() {
+                            self._container.setStyle(style);
+                            self.notifyObservers('positionChange', self.position);
+                        });
+                    } else {
+                        shifted.remove();
+                        self._container.setStyle(style);
+                        self.notifyObservers('positionChange', self.position);
+                    }
                 };
                 
                 if (onFirstPage && this._elements.length > 1) {
-                    this.setPosition({align: 'left', index: 1},
+                    shifted.animate({opacity: {from: 1, to: 0}}, this._options.pushFade)
+                    ._(this).setPosition({align: 'left', index: 1},
                         {silent: true, animTime: this._options.pushSlide})
                     ._(reset.partial(true));
                 } else {
