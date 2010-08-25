@@ -163,7 +163,7 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                     style, offset;
                 
                 options = options || {};
-
+                
                 if ((align === thisAlign && index === thisIndex) ||
                     (index < 0 || index >= this._elements.length)) return this;
                 
@@ -218,7 +218,11 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                 style[this.position.align] = this.getOffset(this.position) + 'px';
                 this._container.setStyle(style);
                 
-                if (onLastPage) this.setPosition({align: 'right', index: this._elements.length - 1});
+                if (onLastPage) {
+                    this.setPosition({align: 'right', index: this._elements.length - 1});
+                } else {
+                    this.notifyObservers('positionChange', this.position);
+                }
                 
                 return this;
             },
@@ -235,18 +239,22 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                 style[this.position.align] = this.getOffset(this.position) + 'px';
                 this._container.setStyle(style);
                 
-                if (onFirstPage) this.setPosition({align: 'left', index: 0});
+                if (onFirstPage) {
+                    this.setPosition({align: 'left', index: 0});
+                } else {
+                    this.notifyObservers('positionChange', this.position);
+                }
                 
                 return this;
             },
-
+            
             shift: function() {
                 var shifted     = this._elements[0],
                     onFirstPage = this.onFirstPage(),
                     self = this, reset;
-
+                
                 if (!shifted) return;
-
+                
                 reset = function(index) {
                     if (typeof index == 'number') self.position.index = index;
                     self._elements.shift().remove();
@@ -255,13 +263,13 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                     self._container.setStyle(style);
                     self.notifyObservers('positionChange', self.position);
                 };
-
+                
                 if (onFirstPage && this._elements.length > 1) {
                     this.setPosition({align: 'left', index: 1}, {silent: true})._(reset.partial(0));
                 } else {
                     reset();
                 }
-
+                
                 return shifted;
             }
         },
