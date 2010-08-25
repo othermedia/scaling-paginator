@@ -50,7 +50,7 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
     },
     
     hasSinglePage: function() {
-        return this.getWidth() <= this.getViewportWidth();
+        return this.getSize() <= this.getViewportSize();
     },
     
     getLeftPages: function() {
@@ -82,16 +82,16 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
      * of the container and the width of the available elements.
      */
     makePages: function(elements) {
-        var containerWidth = this.getViewportWidth(),
-            pageWidth      = 0;
+        var containerSize = this.getViewportSize(),
+            pageSize = 0, self = this;
         
         return (elements || []).reduce(function(pages, element) {
-            var elementWidth = element.getWidth();
+            var elementSize = element[self.getSizeMethod()]();
             
-            pageWidth += elementWidth;
+            pageSize += elementSize;
             
-            if (pageWidth > containerWidth) {
-                pageWidth = elementWidth;
+            if (pageSize > containerSize) {
+                pageSize = elementSize;
                 pages.push([element]);
             } else {
                 pages[pages.length - 1].push(element);
@@ -108,9 +108,10 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
      */
     getOffset: function(position) {
         var index = position.index,
-            ends  = position.align === 'left' ? [0, index] : [index + 1];
+            ends  = position.align === 'left' ? [0, index] : [index + 1],
+            self  = this;
         return Array.prototype.slice.apply(this._elements, ends).reduce(function(o, e) {
-            return o - e.getWidth();
+            return o - e[self.getSizeMethod()]();
         }, 0);
     },
     
@@ -159,9 +160,9 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
             },
             
             setPosition: function(position, options) {
-                var thisAlign = this.position.align,
+                var thisAlign = this.getAlign(this.position.align),
                     thisIndex = this.position.index,
-                    align     = position.align,
+                    align     = this.getAlign(position.align),
                     index     = position.index,
                     animation = {},
                     style, offset, animTime;
@@ -177,8 +178,8 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                 // give a base offset to animate from.
                 if (align !== thisAlign) {
                     style  = {};
-                    offset = this.getWidth() -
-                             this.getViewportWidth() +
+                    offset = this.getSize() -
+                             this.getViewportSize() +
                              this.getOffset(this.position);
                     style[thisAlign] = '';
                     style[align] = -offset + 'px';
@@ -222,8 +223,9 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                 }
                 this._container.insert(item, 'bottom');
                 
-                style = {width: this.getWidth() + 'px'};
-                style[this.position.align] = this.getOffset(this.position) + 'px';
+                style = {};
+                style[this.getDirectionProperty()] = this.getSize() + 'px';
+                style[this.getAlign(this.position.align)] = this.getOffset(this.position) + 'px';
                 this._container.setStyle(style);
                 
                 if (onLastPage) {
@@ -247,10 +249,13 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                 if (!popped) return;
                 
                 reset = function(last) {
-                    if (last) self.position.index = self._elements.length - 1;
                     self._elements.pop();
-                    var style = {width: self.getWidth() + 'px'};
-                    style[self.position.align] = self.getOffset(self.position) + 'px';
+                    if (last) self.position.index = self._elements.length - 1;
+                    
+                    var style = {};
+                    style[self.getDirectionProperty()] = self.getSize() + 'px';
+                    style[self.getAlign(self.position.align)] = self.getOffset(self.position) + 'px';
+                    
                     if (self.hasSinglePage() && !onLastPage) {
                         popped.animate({opacity: {from: 1, to: 0}}, self._options.pushFade).remove()
                         ._(function() {
@@ -287,8 +292,9 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                 this._container.insert(item, 'top');
                 this.position.index += 1;
                 
-                style = {width: this.getWidth() + 'px'};
-                style[this.position.align] = this.getOffset(this.position) + 'px';
+                style = {};
+                style[this.getDirectionProperty()] = this.getSize() + 'px';
+                style[this.getAlign(this.position.align)] = this.getOffset(this.position) + 'px';
                 this._container.setStyle(style);
                 
                 if (onFirstPage) {
@@ -312,10 +318,13 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                 if (!shifted) return;
                 
                 reset = function(last) {
-                    if (last) self.position.index = 0;
                     self._elements.shift();
-                    var style = {width: self.getWidth() + 'px'};
-                    style[self.position.align] = self.getOffset(self.position) + 'px';
+                    if (last) self.position.index = 0;
+                    
+                    var style = {};
+                    style[self.getDirectionProperty()] = self.getSize() + 'px';
+                    style[self.getAlign(self.position.align)] = self.getOffset(self.position) + 'px';
+                    
                     if (self.hasSinglePage() && !onFirstPage) {
                         shifted.animate({opacity: {from: 1, to: 0}}, self._options.pushFade).remove()
                         ._(function() {
@@ -352,26 +361,30 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
             setup: function() {
                 this._container = Ojay(this._selector);
                 this._elements  = this._container.children().map(Ojay);
+                this.position   = {align: 'left', index: 0};
                 
-                this.position = {
-                    align: 'left',
-                    index: 0
-                };
-                
-                var r = this.getRegion(),
-                    x = r.width,
-                    y = r.pageHeight;
-                
-                this._wrapper = Ojay(Ojay.HTML.div({className: 'paginator horizontal'}));
-                
-                this._wrapper.setStyle({
+                var style = {
                     overflow: 'hidden',
                     position: 'relative',
-                    height:   y + 'px',
                     margin:  0,
                     border:  'none',
                     padding: 0
-                });
+                }, r = this.getRegion(), x, y;
+                
+                if (this._options.direction == 'vertical') {
+                    x = r.pageWidth;
+                    y = r.height;
+                    style['width'] = x + 'px';
+                    style['height'] = this._container.getHeight() + 'px';
+                } else {
+                    x = r.width;
+                    y = r.pageHeight;
+                    style['height'] = y + 'px';
+                }
+                
+                this._wrapper = Ojay(Ojay.HTML.div({className: 'paginator ' + this._options.direction}));
+                
+                this._wrapper.setStyle(style);
                 
                 this._container.setStyle({
                     position: 'absolute',
@@ -403,7 +416,8 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
             
             var x = item.getWidth(), y = item.getHeight();
             
-            region.width += x;
+            region.width  += x;
+            region.height += y;
             
             if (x > region.pageWidth) {
                 region.pageWidth = x;
@@ -414,20 +428,31 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
             }
             
             return region;
-        }, {width: 0, pageHeight: 0, pageWidth: 0});
-    },
-
-    
-    getWidth: function() {
-        return this.getRegion().width;
+        }, {height: 0, width: 0, pageHeight: 0, pageWidth: 0});
     },
     
-    getHeight: function() {
-        return this.getRegion().height;
+    getSize: function() {
+        return this.getRegion()[this._options.direction == 'vertical' ? 'height' : 'width'];
     },
     
-    getViewportWidth: function() {
-        return this._wrapper.getWidth();
+    getViewportSize: function() {
+        return this._wrapper[this.getSizeMethod()]();
+    },
+    
+    getDirectionProperty: function() {
+        return this._options.direction == 'vertical' ? 'height' : 'width';
+    },
+    
+    getSizeMethod: function() {
+        return this._options.direction == 'vertical' ? 'getHeight' : 'getWidth';
+    },
+    
+    getAlign: function(align) {
+        if (this._options.direction != 'vertical') {
+            return align;
+        } else {
+            return align == 'right' ? 'bottom' : 'top';
+        }
     },
     
     extend: {

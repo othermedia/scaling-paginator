@@ -1,3 +1,7 @@
+2010.08.25, Version 1.2.0
+
+* Paginators can now be oriented vertically as well as horizontally.
+
 2010.08.25, Version 1.1.0
 
 * Added push, pop, unshift and shift methods to add and remove elements from
