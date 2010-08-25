@@ -49,6 +49,10 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
         return this.position.align == 'right' && !this.hasRight();
     },
     
+    hasSinglePage: function() {
+        return this.getWidth() <= this.getViewportWidth();
+    },
+    
     getLeftPages: function() {
         var leftAligned = this.position.align === 'left',
             index       = this.position.index,
@@ -160,7 +164,7 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                     align     = position.align,
                     index     = position.index,
                     animation = {},
-                    style, offset;
+                    style, offset, animTime;
                 
                 options = options || {};
                 
@@ -181,11 +185,13 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                     this._container.setStyle(style);
                 }
                 
+                animTime = typeof options.animTime == 'number' ?
+                    options.animTime : this._options.scrollTime;
                 animation[align] = {to: this.getOffset(position)};
                 
                 this.setState('SCROLLING');
                 
-                return this._container.animate(animation, this._options.scrollTime)._(function() {
+                return this._container.animate(animation, animTime)._(function() {
                     this.position = position;
                     this.setState('READY');
                     
@@ -207,11 +213,13 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
             },
             
             push: function(item) {
-                var onLastPage = this.onLastPage(),
-                    style;
+                var onLastPage = this.onLastPage(), hasSinglePage, style;
                 
                 item = Ojay(item);
                 this._elements.push(item);
+                if (!onLastPage && (hasSinglePage = this.hasSinglePage())) {
+                    item.setStyle({opacity: 0});
+                }
                 this._container.insert(item, 'bottom');
                 
                 style = {width: this.getWidth() + 'px'};
@@ -219,8 +227,12 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                 this._container.setStyle(style);
                 
                 if (onLastPage) {
-                    this.setPosition({align: 'right', index: this._elements.length - 1});
+                    item.setStyle({opacity: 0});
+                    this.setPosition({align: 'right', index: this._elements.length - 1},
+                        {animTime: this._options.pushSlide})
+                    ._(item).animate({opacity: {to: 1}}, this._options.pushFade);
                 } else {
+                    if (hasSinglePage) item.animate({opacity: {to: 1}}, this._options.pushFade);
                     this.notifyObservers('positionChange', this.position);
                 }
                 
@@ -244,7 +256,8 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                 };
                 
                 if (onLastPage && this._elements.length > 1) {
-                    this.setPosition({align: 'right', index: this._elements.length - 2}, {silent: true})
+                    this.setPosition({align: 'right', index: this._elements.length - 2},
+                        {silent: true, animTime: this._options.pushSlide})
                     ._(reset.partial(true));
                 } else {
                     reset();
@@ -254,10 +267,13 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
             },
             
             unshift: function(item) {
-                var onFirstPage = this.onFirstPage(), style;
+                var onFirstPage = this.onFirstPage(), hasSinglePage, style;
                 
                 item = Ojay(item);
                 this._elements.unshift(item);
+                if (!onFirstPage && (hasSinglePage = this.hasSinglePage())) {
+                    item.setStyle({opacity: 0});
+                }
                 this._container.insert(item, 'top');
                 this.position.index += 1;
                 
@@ -266,8 +282,12 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                 this._container.setStyle(style);
                 
                 if (onFirstPage) {
-                    this.setPosition({align: 'left', index: 0});
+                    item.setStyle({opacity: 0});
+                    this.setPosition({align: 'left', index: 0},
+                        {animTime: this._options.pushSlide})
+                    ._(item).animate({opacity: {to: 1}}, this._options.pushFade);
                 } else {
+                    if (hasSinglePage) item.animate({opacity: {to: 1}}, this._options.pushFade);
                     this.notifyObservers('positionChange', this.position);
                 }
                 
@@ -291,7 +311,8 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                 };
                 
                 if (onFirstPage && this._elements.length > 1) {
-                    this.setPosition({align: 'left', index: 1}, {silent: true})
+                    this.setPosition({align: 'left', index: 1},
+                        {silent: true, animTime: this._options.pushSlide})
                     ._(reset.partial(true));
                 } else {
                     reset();
@@ -391,7 +412,7 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
     
     extend: {
         SCROLL_TIME:     0.5,
-        PUSH_FADE_TIME:  0.3,
+        PUSH_FADE_TIME:  0.5,
         PUSH_SLIDE_TIME: 0.3,
         DIRECTION:       'horizontal',
         EASING:          'default',
