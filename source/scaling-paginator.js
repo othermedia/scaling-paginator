@@ -11,6 +11,15 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
         options.direction  = (options.direction || this.klass.DIRECTION).toLowerCase();
         options.easing     = options.easing     || this.klass.EASING;
         
+        if (typeof options.offsets == 'object') {
+            options.offsts = ['top', 'right', 'bottom', 'left'].reduce(function(offsets, side) {
+                offsets[side] = options.offsets[side] || this.klass.OFFSETS[side];
+                return offsets;
+            }.bind(this), {});
+        } else {
+            options.offsets = this.klass.OFFSETS;
+        }
+        
         this.setState('CREATED');
     },
     
@@ -348,6 +357,26 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                 }
                 
                 return shifted;
+            },
+            
+            resize: function() {
+                var portsize     = Ojay.getViewportSize(),
+                    direction    = this.getDirectionProperty(),
+                    style        = {};
+                
+                if (this._options.direction == 'vertical') {
+                    style.height = portsize.height -
+                                   this._options.offsets.top -
+                                   this._options.offsets.bottom + 'px';
+                } else {
+                    style.width = portsize.width -
+                                  this._options.offsets.left -
+                                  this._options.offsets.right + 'px';
+                }
+                
+                this._wrapper.setStyle(style);
+                
+                return this;
             }
         },
         
@@ -364,22 +393,30 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                 this.position   = {align: 'left', index: 0};
                 
                 var style = {
-                    overflow: 'hidden',
-                    position: 'relative',
-                    margin:  0,
-                    border:  'none',
-                    padding: 0
+                    overflow:     'hidden',
+                    position:     'relative',
+                    marginTop:    0,
+                    marginRight:  0,
+                    marginBottom: 0,
+                    marginLeft:   0,
+                    border:       'none',
+                    padding:      0
                 }, r = this.getRegion(), x, y;
                 
                 if (this._options.direction == 'vertical') {
                     x = r.pageWidth;
                     y = r.height;
-                    style['width'] = x + 'px';
+                    style['width']  = x + 'px';
                     style['height'] = this._container.getHeight() + 'px';
+                    style.marginTop    = this._options.offsets.top  + 'px';
+                    style.marginBottom = this._options.offsets.top + 'px';
                 } else {
                     x = r.width;
                     y = r.pageHeight;
                     style['height'] = y + 'px';
+                    style['width']  = 'auto';
+                    style.marginLeft  = this._options.offsets.left + 'px';
+                    style.marginRight = this._options.offsets.right + 'px';
                 }
                 
                 this._wrapper = Ojay(Ojay.HTML.div({className: 'paginator ' + this._options.direction}));
@@ -389,15 +426,18 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                 this._container.setStyle({
                     position: 'absolute',
                     width:    x + 'px',
-                    height:   y + 'px'
+                    height:   y + 'px',
+                    top:      0,
+                    left:     0
                 });
                 
                 this._container.insert(this._wrapper, 'before');
                 this._wrapper.insert(this._container);
                 
-                Ojay(window).on('resize', this._right, this);
+                Ojay(window).on('resize', this.resize, this);
                 
                 this.setState('READY');
+                this.resize();
             },
             
             getHTML: function() {
@@ -461,6 +501,7 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
         PUSH_SLIDE_TIME: 0.3,
         DIRECTION:       'horizontal',
         EASING:          'default',
+        OFFSETS:         {top: 0, right: 0, bottom: 0, left: 0},
         
         Controls: new JS.Class('ScalingPaginator.Controls', {
             initialize: function(paginator) {

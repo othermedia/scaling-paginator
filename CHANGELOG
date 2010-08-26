@@ -1,6 +1,8 @@
 2010.08.25, Version 1.2.0
 
 * Paginators can now be oriented vertically as well as horizontally.
+* Resizing of paginators now functions as intended.
+* Added an offsets option to allow the addition of space for controls etc.
 
 2010.08.25, Version 1.1.0
 

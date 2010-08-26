@@ -12,7 +12,7 @@
     
     <style type="text/css">
         html, body {margin:0; border:none; padding:0;}
-        .container {position:relative; margin:0 0 30px 0; padding:0 110px;}
+        .container {position:relative; margin:0 0 30px 0;}
         .paginator {padding:0 120px; background:#f0f0f0;}
         .item {width:150px; height:150px; border-right:10px solid #fff; float:left; background:#f00; color:#fff;}
         .paginator-controls .previous, .paginator-controls .next {width:100px; background:#0f0; position:absolute; top:0; height:150px; border-style:solid; border-color:#00f;}
@@ -52,7 +52,11 @@
             
             pager = new ScalingPaginator(container, {
                 direction: 'horizontal',
-                scrollTime: 1.0
+                scrollTime: 1.0,
+                offsets: {
+                    left:  110,
+                    right: 110
+                }
             });
             pager.setup();
             pager.addControls();
