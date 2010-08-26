@@ -5,11 +5,12 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
         this._selector = subject;
         
         this._options = options = options || {};
-        options.scrollTime = options.scrollTime || this.klass.SCROLL_TIME;
-        options.pushFade   = options.pushFade   || this.klass.PUSH_FADE_TIME;
-        options.pushSlide  = options.pushSlide  || this.klass.PUSH_SLIDE_TIME;
-        options.direction  = (options.direction || this.klass.DIRECTION).toLowerCase();
-        options.easing     = options.easing     || this.klass.EASING;
+        options.scrollTime    = options.scrollTime    || this.klass.SCROLL_TIME;
+        options.pushFade      = options.pushFade      || this.klass.PUSH_FADE_TIME;
+        options.pushSlide     = options.pushSlide     || this.klass.PUSH_SLIDE_TIME;
+        options.direction     = (options.direction    || this.klass.DIRECTION).toLowerCase();
+        options.easing        = options.easing        || this.klass.EASING;
+        options.fitToViewport = options.fitToViewport || this.klass.FIT_VIEWPORT;
         
         if (typeof options.offsets == 'object') {
             options.offsts = ['top', 'right', 'bottom', 'left'].reduce(function(offsets, side) {
@@ -360,7 +361,8 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
             },
             
             resize: function() {
-                var portsize     = Ojay.getViewportSize(),
+                var portsize     = this._options.fitToViewport ?
+                        Ojay.getViewportSize() : this._wrapper.parents().getRegion(),
                     direction    = this.getDirectionProperty(),
                     style        = {};
                 
@@ -502,6 +504,7 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
         DIRECTION:       'horizontal',
         EASING:          'default',
         OFFSETS:         {top: 0, right: 0, bottom: 0, left: 0},
+        FIT_VIEWPORT:    false,
         
         Controls: new JS.Class('ScalingPaginator.Controls', {
             initialize: function(paginator) {

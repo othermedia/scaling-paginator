@@ -63,6 +63,11 @@ a direction, pass in either `vertical` or `horizontal` as the value of the
 `direction` property of the options object. The default orientation is
 horizontal.
 
+### `fitToViewport`
+
+If this is set to true, the paginator will fill the viewport rather than its
+container. By default it's set to false.
+
 ### `offsets`
 
 This option allows one to set `top`, `right`, `bottom` and `left` amounts that
