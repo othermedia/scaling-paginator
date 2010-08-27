@@ -93,10 +93,8 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                                this._elements.slice(0, this.position.index) :
                                this._elements.slice(this.position.index),
             pages        = this.makePages(elements),
-            currentPage  = pages[rightAligned ? pages.length - 1 : 0],
+            currentPage  = pages[rightAligned ? pages.length - 1 : 0] || [],
             nextPage, nextItem;
-        
-        if (!currentPage) return [];
         
         if ((nextPage = pages[rightAligned ? pages.length - 2 : 1]) &&
             (nextItem = nextPage[rightAligned ? nextPage.length - 1 : 0])) {
@@ -357,7 +355,11 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                         style          = {};
                     
                     self._elements.shift();
-                    if (last) self.position.index = 0;
+                    if (last) {
+                        self.position.index = 0;
+                    } else {
+                        self.position.index -= 1;
+                    }
                     
                     style[self.getDirectionProperty()] = self.getSize() + 'px';
                     style[self.getAlign(self.position.align)] = self.getOffset(self.position) + 'px';
