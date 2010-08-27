@@ -87,6 +87,29 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
         return pages;
     },
     
+    getVisibleElements: function() {
+        var rightAligned = this.position.align == 'right',
+            elements     = rightAligned ?
+                               this._elements.slice(0, this.position.index) :
+                               this._elements.slice(this.position.index),
+            pages        = this.makePages(elements),
+            currentPage  = pages[rightAligned ? pages.length - 1 : 0],
+            nextPage, nextItem;
+        
+        if (!currentPage) return [];
+        
+        if ((nextPage = pages[rightAligned ? pages.length - 2 : 1]) &&
+            (nextItem = nextPage[rightAligned ? nextPage.length - 1 : 0])) {
+            currentPage.push(nextItem);
+        }
+        
+        return currentPage;
+    },
+    
+    elementVisible: function(element) {
+        return this.getVisibleElements().indexOf(element) > -1;
+    },
+    
     /**
      * Splits the elements of the paginator up into 'pages' based on the width
      * of the container and the width of the available elements.
@@ -259,14 +282,16 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                 if (!popped) return;
                 
                 reset = function(last) {
+                    var elementVisible = self.elementVisible(popped),
+                        style          = {};
+                    
                     self._elements.pop();
                     if (last) self.position.index = self._elements.length - 1;
                     
-                    var style = {};
                     style[self.getDirectionProperty()] = self.getSize() + 'px';
                     style[self.getAlign(self.position.align)] = self.getOffset(self.position) + 'px';
                     
-                    if (self.hasSinglePage() && !onLastPage) {
+                    if (elementVisible) {
                         popped.animate({opacity: {from: 1, to: 0}}, self._options.pushFade).remove()
                         ._(function() {
                             self._container.setStyle(style);
@@ -328,14 +353,16 @@ ScalingPaginator = new JS.Class('ScalingPaginator', {
                 if (!shifted) return;
                 
                 reset = function(last) {
+                    var elementVisible = self.elementVisible(shifted),
+                        style          = {};
+                    
                     self._elements.shift();
                     if (last) self.position.index = 0;
                     
-                    var style = {};
                     style[self.getDirectionProperty()] = self.getSize() + 'px';
                     style[self.getAlign(self.position.align)] = self.getOffset(self.position) + 'px';
                     
-                    if (self.hasSinglePage() && !onFirstPage) {
+                    if (elementVisible) {
                         shifted.animate({opacity: {from: 1, to: 0}}, self._options.pushFade).remove()
                         ._(function() {
                             self._container.setStyle(style);
